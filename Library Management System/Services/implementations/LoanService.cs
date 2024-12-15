@@ -1,7 +1,7 @@
 ﻿using Library_Management_System.Models;
 using Library_Management_System.Repositories;
 
-namespace Library_Management_System.Services;
+namespace Library_Management_System.Services.implementations;
 
 public class LoanService : ILoanService
 {
@@ -47,5 +47,10 @@ public class LoanService : ILoanService
         {
             throw new Exception("Loan not found");
         }
+    }
+
+    public async Task<IEnumerable<Loan>> GetActiveLoansByBookIdAsync(int bookId)
+    {
+        return await _loanRepository.GetActiveLoansByBookIdAsync(bookId);
     }
 }

@@ -8,6 +8,8 @@ namespace Library_Management_System.Repositories;
 public interface ILoanRepository : IRepository<Loan>
 {
     Task<IEnumerable<Loan>> GetActiveLoansAsync();
+    
+    Task<IEnumerable<Loan>> GetActiveLoansByBookIdAsync(int bookId);
 }
 
 public class LoanRepository : ILoanRepository
@@ -40,6 +42,14 @@ public class LoanRepository : ILoanRepository
         return await _dbSet.Include(l => l.Book)
             .Include(l => l.Member)
             .Where(l => l.ReturnDate == null)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Loan>> GetActiveLoansByBookIdAsync(int bookId)
+    {
+        return await _dbSet.Include(l => l.Book)
+            .Include(l => l.Member)
+            .Where(l => l.BookId == bookId && l.ReturnDate == null)
             .ToListAsync();
     }
 

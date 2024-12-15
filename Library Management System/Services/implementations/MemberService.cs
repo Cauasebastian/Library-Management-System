@@ -1,13 +1,14 @@
 ﻿using Library_Management_System.Models;
 using Library_Management_System.Repositories;
 
-namespace Library_Management_System.Services;
+
+namespace Library_Management_System.Services.implementations;
 
 public class MemberService : IMemberService
 {
     private readonly IMemberRepository _memberRepository;
 
-    public MemberService(MemberRepository memberRepository)
+    public MemberService(IMemberRepository memberRepository)
     {
         _memberRepository = memberRepository;
     }
