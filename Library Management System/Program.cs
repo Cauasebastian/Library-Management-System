@@ -10,18 +10,19 @@ using Library_Management_System.Services.implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configurar o banco de dados (usando InMemory para desenvolvimento)
+// Configure MySQL (change connection string to match your MySQL setup)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseInMemoryDatabase("LibraryDb"));
+    options.UseMySql(builder.Configuration.GetConnectionString("LibraryDbConnection"),
+    ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("LibraryDbConnection"))));
 
-// Registrar repositórios
+// Register repositories
 builder.Services.AddScoped<IAuthorRepository, AuthorRepository>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IBookRepository, BookRepository>();
 builder.Services.AddScoped<IMemberRepository, MemberRepository>();
 builder.Services.AddScoped<ILoanRepository, LoanRepository>();
 
-// Registrar serviços
+// Register services
 builder.Services.AddScoped<IAuthorService, AuthorService>();
 builder.Services.AddScoped<ICategoryService, CategoryService>();
 builder.Services.AddScoped<IBookService, BookService>();
@@ -31,7 +32,7 @@ builder.Services.AddScoped<ILoanService, LoanService>();
 // AutoMapper
 builder.Services.AddAutoMapper(Assembly.GetExecutingAssembly());
 
-// Controllers com FluentValidation
+// Controllers with FluentValidation
 builder.Services.AddControllers()
     .AddFluentValidation(fv => fv.RegisterValidatorsFromAssemblyContaining<Program>());
 
@@ -41,7 +42,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "LibraryManagementSystem API", Version = "v1" });
 
-    // Incluir comentários XML (se necessário)
+    // Include XML comments (if needed)
     var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -52,14 +53,18 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-// Inicializar dados de teste (opcional)
+// Migrate database automatically at startup
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // Apply any pending migrations to the database
+    dbContext.Database.Migrate();
+    
+    // Initialize test data (optional)
     SeedData(dbContext);
 }
 
-// Configurar o pipeline HTTP
+// Configure HTTP pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -67,17 +72,15 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
 
-// Método para popular dados de teste
+// Method to populate test data
 void SeedData(ApplicationDbContext context)
 {
-    // Verificar se já existem dados
+    // Check if data already exists
     if (!context.Authors.Any())
     {
         var author1 = new Author { Name = "J.K. Rowling" };
